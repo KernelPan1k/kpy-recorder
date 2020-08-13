@@ -16,10 +16,25 @@ INACTIVE_STOP_RECORD = 10
 
 
 def main():
+    class TempDirException(Exception):
+        def __init__(self, message):
+            super(self).__init__(message)
+
+        def message(self):
+            return self.message
+
+    class VideoDirectoryException(Exception):
+        def __init__(self, message):
+            super(self).__init__(message)
+
+        def message(self):
+            return self.message
+
     class VideoMaker(object):
         """
         Record the user activity into video .avi.
         """
+
         def __init__(self, video_path, tmp_picture):
             self.video_path = video_path
             self.tmp_picture = tmp_picture
@@ -161,6 +176,7 @@ def main():
         """
         Useful helpers
         """
+
         def __init__(self, video_directory, nbr_videos_to_keep):
             self.video_directory = video_directory.strip()
             self.nbr_videos_to_keep = nbr_videos_to_keep
@@ -185,15 +201,14 @@ def main():
             :return:
             """
             if self.temp_directory is None:
-                # TODO WRITE CUSTOM EXCEPTION
                 try:
                     self.temp_directory = tempfile.TemporaryDirectory()
                 except (PermissionError, FileExistsError):
-                    print("err")
+                    raise TempDirException("Unable to create temporary directory")
             if not os.path.isdir(self.temp_directory.name):
                 if first:
                     return self.temp_dir(False)
-                raise RuntimeError("Err")
+                raise TempDirException("Temporary directory does not exists")
 
             return self.temp_directory.name
 
@@ -203,10 +218,10 @@ def main():
             :return:
             """
             if not os.path.isdir(self.video_directory):
-                raise RuntimeError("Path %s doesn't exist" % self.video_directory)
+                raise VideoDirectoryException("Path %s doesn't exist" % self.video_directory)
 
             if not os.access(self.video_directory, os.W_OK):
-                raise RuntimeError("Path %s isn't writable" % self.video_directory)
+                raise VideoDirectoryException("Path %s isn't writable" % self.video_directory)
 
             self.temp_dir()
             self.remove_oldest()
