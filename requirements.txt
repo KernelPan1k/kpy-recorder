@@ -1,12 +1,5 @@
-EasyProcess==0.3
-entrypoint2==0.2.1
-jeepney==0.4.3
-mss==6.0.0
 numpy==1.19.1
 opencv-python==4.3.0.38
 Pillow==7.2.0
-pkg-resources==0.0.0
 pynput==1.6.8
 pyscreenshot==2.2
-python-xlib==0.27
-six==1.15.0
