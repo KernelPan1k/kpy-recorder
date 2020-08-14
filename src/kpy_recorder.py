@@ -30,11 +30,10 @@ def main():
         def message(self):
             return self.message
 
-    class VideoMaker(object):
+    class ScreenRecorder(object):
         """
         Record the user activity into video .avi.
         """
-
         def __init__(self, video_path, tmp_picture):
             self.video_path = video_path
             self.tmp_picture = tmp_picture
@@ -42,6 +41,41 @@ def main():
             self.nbr = 0
             self.width = None
             self.height = None
+            self.writer = None
+            self.frames = []
+
+        def get_fps(self):
+            """
+            Try to find a good fps value bases on last 5 seconds
+            :return:
+            """
+            now = time()
+            elapsed = now - self.start
+            # try to find the better fps
+            return float(int(self.nbr / elapsed))
+
+        def get_writer(self):
+            """
+            Return a VideoWriter
+            :return:
+            """
+            if not self.writer:
+                fourcc = cv2.VideoWriter_fourcc(*"XVID")
+                fps = self.get_fps()
+                self.writer = cv2.VideoWriter(self.video_path, fourcc, fps, (self.width, self.height))
+
+            return self.writer
+
+        def write_video(self):
+            """
+            Write frame(s)
+            :return:
+            """
+            writer = self.get_writer()
+
+            for frame in self.frames:
+                writer.write(frame)
+
             self.frames = []
 
         def take_screenshot(self):
@@ -61,24 +95,18 @@ def main():
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             self.frames.append(frame)
 
+            # Wait 5 seconds to get a good fps
+            if self.start > 5:
+                self.write_video()
+
         def stop_record(self):
             """
             Write the video
             :return:
             """
-            now = time()
-            elapsed = now - self.start
-            # try to find the better fps
-            fps = float(int(self.nbr / elapsed))
-            fourcc = cv2.VideoWriter_fourcc(*"XVID")
-            writer = cv2.VideoWriter(self.video_path, fourcc, fps, (self.width, self.height))
-
-            for frame in self.frames:
-                # write the video
-                writer.write(frame)
-
+            self.write_video()
             cv2.destroyAllWindows()
-            writer.release()
+            self.writer.release()
 
     class ListenerEvent(object):
         """
@@ -252,26 +280,26 @@ def main():
     class ActivityListener(object):
         def __init__(self, video_directory, nbr_videos_to_keep, inactive_times):
             self.utils = Utils(video_directory, nbr_videos_to_keep)
-            self.events = ListenerEvent(inactive_times)
-            self.video_maker = None
+            self.listener_event = ListenerEvent(inactive_times)
+            self.screen_recoder = None
             self.run()
 
         def run(self):
             while True:
                 sleep(0.1)
 
-                if self.events.need_to_start():
-                    self.events.update_status(ListenerEvent.STATUS_IN_RECORD)
-                    self.video_maker = VideoMaker(self.utils.make_video_path(), self.utils.get_tmp_picture())
+                if self.listener_event.need_to_start():
+                    self.listener_event.update_status(ListenerEvent.STATUS_IN_RECORD)
+                    self.screen_recoder = ScreenRecorder(self.utils.make_video_path(), self.utils.get_tmp_picture())
 
-                if self.events.need_record():
-                    self.video_maker.take_screenshot()
-                    self.events.check_status()
+                if self.listener_event.need_record():
+                    self.screen_recoder.take_screenshot()
+                    self.listener_event.check_status()
 
-                if self.events.need_to_stop():
-                    self.video_maker.stop_record()
-                    self.video_maker = None
-                    self.events.update_status(ListenerEvent.STATUS_STOPPED)
+                if self.listener_event.need_to_stop():
+                    self.screen_recoder.stop_record()
+                    self.screen_recoder = None
+                    self.listener_event.update_status(ListenerEvent.STATUS_STOPPED)
                     self.utils.remove_oldest()
 
     parser = ArgumentParser(usage="usage: %(prog)s [options]")
