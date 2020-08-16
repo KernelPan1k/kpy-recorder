@@ -17,8 +17,22 @@ It run in commands line with following parameters:
     
     
     ex:
-    kp_record -o /tmp/user/screen
-    kp_record -o /tmp/user/screen -i 90
-    kp_record -o /tmp/user/screen -i 60 -k 500
-    kp_record -o /tmp/user/screen -k 20
+    kpy_recorder -o /tmp/user/screen
+    kpy_recorder -o /tmp/user/screen -i 90
+    kpy_recorder -o /tmp/user/screen -i 60 -k 500
+    kpy_recorder -o /tmp/user/screen -k 20
 
+
+Binaries
+--------
+
+You can download some builds here: https://github.com/KernelPan1k/kpy-recorder/tree/master/dist
+
+
+User from source
+----------------
+
+    python3 -m venv venv
+    source venv/bin/activate
+    pip install -r requirements.txt
+    python src/kpy_recorder.py -o /path/folder/videos
