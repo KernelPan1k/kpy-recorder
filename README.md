@@ -29,7 +29,7 @@ Binaries
 You can download some builds here: https://github.com/KernelPan1k/kpy-recorder/tree/master/dist
 
 
-User from source
+Install from source
 ----------------
 
     python3 -m venv venv
